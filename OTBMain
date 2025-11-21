@@ -1,0 +1,164 @@
+/**
+ * ACTIVIDAD – PATRONES DE DISEÑO (Creacional, Estructural, Comportamiento)
+ * Caso de Uso: Sistema de Asistencia de una OTB
+ * Lenguaje: Java
+ * Archivo único: OTBMain.java
+ */
+
+import java.util.*;
+
+// -----------------------------
+// PATRÓN CREACIONAL: SINGLETON
+// -----------------------------
+class SistemaOTB {
+    private static SistemaOTB instancia;
+    private List<Observer> observadores = new ArrayList<>();
+    private List<String[]> reporteFinal = new ArrayList<>();
+
+    private SistemaOTB() {}
+
+    public static SistemaOTB getInstancia() {
+        if (instancia == null) instancia = new SistemaOTB();
+        return instancia;
+    }
+
+    public void agregarObservador(Observer o) {
+        observadores.add(o);
+    }
+
+    public void notificar(String mensaje) {
+        for (Observer o : observadores) {
+            o.actualizar(mensaje);
+        }
+    }
+
+    public void agregarAlReporte(String nombre, String estado, String multa) {
+        reporteFinal.add(new String[]{nombre, estado, multa});
+    }
+
+    public void mostrarReporte() {
+        System.out.println("\n============================================");
+        System.out.println("           REPORTE FINAL DE ASISTENCIA      ");
+        System.out.println("============================================");
+
+        System.out.printf("%-10s | %-12s | %-10s\n", "Vecino", "Estado", "Multa");
+        System.out.println("--------------------------------------------");
+
+        for (String[] fila : reporteFinal) {
+            System.out.printf("%-10s | %-12s | %-10s\n", fila[0], fila[1], fila[2]);
+        }
+
+        System.out.println("============================================");
+    }
+}
+
+// --------------------------------------------
+// PATRÓN COMPORTAMIENTO: OBSERVER
+// --------------------------------------------
+interface Observer {
+    void actualizar(String mensaje);
+}
+
+class Vecino implements Observer {
+    private String nombre;
+
+    public Vecino(String nombre) {
+        this.nombre = nombre;
+    }
+
+    @Override
+    public void actualizar(String mensaje) {
+        System.out.println(" → Notificación para " + nombre + ": " + mensaje);
+    }
+}
+
+// --------------------------------------------
+// PATRÓN ESTRUCTURAL: DECORATOR
+// --------------------------------------------
+interface Registro {
+    String descripcion();
+}
+
+class Asistencia implements Registro {
+    private String vecino;
+
+    public Asistencia(String vecino) {
+        this.vecino = vecino;
+    }
+
+    @Override
+    public String descripcion() {
+        return vecino + " asistió.";
+    }
+}
+
+class Falta implements Registro {
+    private String vecino;
+
+    public Falta(String vecino) {
+        this.vecino = vecino;
+    }
+
+    @Override
+    public String descripcion() {
+        return vecino + " faltó.";
+    }
+}
+
+// Decorator que agrega multa
+class DecoradorMulta implements Registro {
+    protected Registro base;
+    private int monto;
+
+    public DecoradorMulta(Registro base, int monto) {
+        this.base = base;
+        this.monto = monto;
+    }
+
+    @Override
+    public String descripcion() {
+        return base.descripcion() + " Multa: Bs " + monto;
+    }
+
+    public int getMonto() {
+        return monto;
+    }
+}
+
+// --------------------------------------------
+// MAIN – 4 vecinos predefinidos
+// --------------------------------------------
+public class OTBMain {
+    public static void main(String[] args) {
+        SistemaOTB sistema = SistemaOTB.getInstancia();
+        Scanner sc = new Scanner(System.in);
+
+        // Observadores (dirigentes)
+        sistema.agregarObservador(new Vecino("Presidente OTB"));
+        sistema.agregarObservador(new Vecino("Secretaria"));
+
+        // Vecinos definidos
+        List<String> vecinos = Arrays.asList("Angela", "Pedro", "Lucía", "Carlos");
+
+        System.out.println("=== SISTEMA DE ASISTENCIA DE LA OTB ===");
+
+        for (String v : vecinos) {
+            System.out.print("\n¿" + v + " asistió? (s/n): ");
+            String r = sc.nextLine().trim().toLowerCase();
+
+            if (r.equals("s")) {
+                Registro reg = new Asistencia(v);
+                sistema.agregarAlReporte(v, "Asistió", "—");
+                sistema.notificar(v + " asistió correctamente.");
+            } else {
+                Registro falta = new Falta(v);
+                DecoradorMulta multa = new DecoradorMulta(falta, 50);
+
+                sistema.agregarAlReporte(v, "Faltó", "Bs 50");
+                sistema.notificar("Se registró falta y multa para " + v);
+            }
+        }
+
+        sistema.mostrarReporte();
+    }
+}
