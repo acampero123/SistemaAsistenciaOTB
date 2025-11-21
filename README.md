@@ -19,4 +19,4 @@ Este proyecto es una aplicación de consola en Java que simula un sistema de con
 ## Instrucciones para ejecutar el proyecto
 
 1. Clonar o descargar el repositorio.
-2. Abrir la carpeta del proyecto y compilar el archivo `OTBMain.java`:
+2. Abrir la carpeta del proyecto y compilar el archivo `OTBMain.java`
